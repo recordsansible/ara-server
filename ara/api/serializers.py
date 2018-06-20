@@ -105,10 +105,20 @@ class FileSerializer(serializers.ModelSerializer):
     content = FileContentField()
 
 
+class HostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Host
+        fields = '__all__'
+
+    facts = CompressedObjectField(default=zlib.compress(json.dumps({}).encode('utf8')))
+
+
 class ResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Result
         fields = '__all__'
+
+    content = CompressedObjectField(default=zlib.compress(json.dumps({}).encode('utf8')))
 
 
 class PlaybookSerializer(DurationSerializer):
@@ -134,8 +144,6 @@ class PlaySerializer(DurationSerializer):
     class Meta:
         model = models.Play
         fields = '__all__'
-
-    results = ResultSerializer(read_only=True, many=True)
 
 
 class TaskSerializer(DurationSerializer):

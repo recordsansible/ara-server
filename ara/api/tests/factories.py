@@ -28,3 +28,49 @@ class PlaybookFactory(factory.DjangoModelFactory):
     completed = True
     parameters = b'x\x9c\xabVJ\xcb\xcfW\xb2RPJJ,R\xaa\x05\x00 \x98\x04T'
     file = factory.SubFactory(FileFactory)
+
+
+class PlayFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = models.Play
+
+    name = 'test play'
+    completed = True
+    playbook = factory.SubFactory(PlaybookFactory)
+
+
+class TaskFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = models.Task
+
+    name = 'test task'
+    completed = True
+    action = 'setup'
+    lineno = 2
+    handler = False
+    play = factory.SubFactory(PlayFactory)
+    file = factory.SubFactory(FileFactory)
+
+
+class HostFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = models.Host
+
+    facts = b'x\x9c\xabVJ\xcb\xcfW\xb2RPJJ,R\xaa\x05\x00 \x98\x04T'
+    name = 'hostname'
+    changed = 1
+    failed = 0
+    ok = 2
+    skipped = 1
+    unreachable = 0
+    play = factory.SubFactory(PlayFactory)
+
+
+class ResultFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = models.Result
+
+    content = b'x\x9c\xabVJ\xcb\xcfW\xb2RPJJ,R\xaa\x05\x00 \x98\x04T'
+    status = 'ok'
+    host = factory.SubFactory(HostFactory)
+    task = factory.SubFactory(TaskFactory)
