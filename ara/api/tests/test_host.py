@@ -59,26 +59,26 @@ class HostTestCase(APITestCase):
         self.assertEqual(serializer.data['facts'], factories.HOST_FACTS)
 
     def test_get_no_hosts(self):
-        request = self.client.get('/api/v1/hosts/')
+        request = self.client.get('/api/v1/hosts')
         self.assertEqual(0, len(request.data['results']))
 
     def test_get_hosts(self):
         host = factories.HostFactory()
-        request = self.client.get('/api/v1/hosts/')
+        request = self.client.get('/api/v1/hosts')
         self.assertEqual(1, len(request.data['results']))
         self.assertEqual(host.name, request.data['results'][0]['name'])
 
     def test_delete_host(self):
         host = factories.HostFactory()
         self.assertEqual(1, models.Host.objects.all().count())
-        request = self.client.delete('/api/v1/hosts/%s/' % host.id)
+        request = self.client.delete('/api/v1/hosts/%s' % host.id)
         self.assertEqual(204, request.status_code)
         self.assertEqual(0, models.Host.objects.all().count())
 
     def test_create_host(self):
         play = factories.PlayFactory()
         self.assertEqual(0, models.Host.objects.count())
-        request = self.client.post('/api/v1/hosts/', {
+        request = self.client.post('/api/v1/hosts', {
             'name': 'create',
             'play': play.id
         })
@@ -110,7 +110,7 @@ class HostTestCase(APITestCase):
     def test_partial_update_host(self):
         host = factories.HostFactory()
         self.assertNotEqual(1, host.ok)
-        request = self.client.patch('/api/v1/hosts/%s/' % host.id, {
+        request = self.client.patch('/api/v1/hosts/%s' % host.id, {
             'ok': 1
         })
         self.assertEqual(200, request.status_code)
@@ -119,5 +119,5 @@ class HostTestCase(APITestCase):
 
     def test_get_host(self):
         host = factories.HostFactory()
-        request = self.client.get('/api/v1/hosts/%s/' % host.id)
+        request = self.client.get('/api/v1/hosts/%s' % host.id)
         self.assertEqual(host.name, request.data['name'])
