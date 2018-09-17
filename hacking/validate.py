@@ -25,7 +25,7 @@ from ara.clients.offline import AraOfflineClient
 def validate_playbook(playbook):
     assert len(playbook['parameters']) == 40
     assert 'hacking/test-playbook.yml' in playbook['file']['path']
-    assert len(playbook['files']) == 9
+    assert len(playbook['files']) == 11
     assert playbook['completed']
 
 

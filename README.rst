@@ -31,7 +31,7 @@ This is python3 only right now.
   pip install tox # (or the tox python library from your distro packages)
 
   # Create data from a test playbook and callback
-  tox -e ansible-playbook
+  tox -e ansible-integration
 
   # Run test server -> http://127.0.0.1:8000/api/v1/
   tox -e runserver
