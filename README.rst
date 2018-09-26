@@ -38,7 +38,7 @@ This is python3 only right now.
 
   # Run actual tests or get coverage
   tox -e pep8
-  tox -e py35
+  tox -e py3
   tox -e cover
 
   # Build docs
