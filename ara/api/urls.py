@@ -15,29 +15,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with ARA.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import url
+from django.urls import path
+from rest_framework.routers import DefaultRouter
 from rest_framework.urlpatterns import format_suffix_patterns
 from ara.api import views
 
-urlpatterns = [
-    url(r'^/$', views.api_root),
-    url(r'^/labels$', views.LabelList.as_view(), name='label-list'),
-    url(r'^/labels/(?P<pk>[0-9]+)$', views.LabelDetail.as_view(), name='label-detail'),
-    url(r'^/playbooks$', views.PlaybookList.as_view(), name='playbook-list'),
-    url(r'^/playbooks/(?P<pk>[0-9]+)$', views.PlaybookDetail.as_view(), name='playbook-detail'),
-    url(r'^/playbooks/(?P<pk>[0-9]+)/files$', views.PlaybookFilesDetail.as_view(), name='playbook-file-detail'),
-    url(r'^/plays$', views.PlayList.as_view(), name='play-list'),
-    url(r'^/plays/(?P<pk>[0-9]+)$', views.PlayDetail.as_view(), name='play-detail'),
-    url(r'^/tasks$', views.TaskList.as_view(), name='task-list'),
-    url(r'^/tasks/(?P<pk>[0-9]+)$', views.TaskDetail.as_view(), name='task-detail'),
-    url(r'^/hosts$', views.HostList.as_view(), name='host-list'),
-    url(r'^/hosts/(?P<pk>[0-9]+)$', views.HostDetail.as_view(), name='host-detail'),
-    url(r'^/results$', views.ResultList.as_view(), name='result-list'),
-    url(r'^/results/(?P<pk>[0-9]+)$', views.ResultDetail.as_view(), name='result-detail'),
-    url(r'^/files$', views.FileList.as_view(), name='file-list'),
-    url(r'^/files/(?P<pk>[0-9]+)$', views.FileDetail.as_view(), name='file-detail'),
-    url(r'^/stats$', views.StatsList.as_view(), name='stats-list'),
-    url(r'^/stats/(?P<pk>[0-9]+)$', views.StatsDetail.as_view(), name='stats-detail'),
-]
+router = DefaultRouter(trailing_slash=False)
+router.register('labels', views.LabelViewSet, base_name='label')
+router.register('playbooks', views.PlaybookViewSet, base_name='playbook')
+router.register('plays', views.PlayViewSet, base_name='play')
+router.register('tasks', views.TaskViewSet, base_name='task')
+router.register('hosts', views.HostViewSet, base_name='host')
+router.register('results', views.ResultViewSet, base_name='result')
+router.register('files', views.FileViewSet, base_name='files')
+router.register('stats', views.StatsViewSet, base_name='stats')
 
-urlpatterns = format_suffix_patterns(urlpatterns)
+api_views = format_suffix_patterns([
+    # TODO: See how we can get that into the docs
+    path('playbooks/<int:pk>/files', views.PlaybookFilesDetail.as_view(), name='playbook-file-detail'),
+])
+urlpatterns = api_views + router.urls
