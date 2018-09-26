@@ -3,3 +3,9 @@
     parent: tox
     vars:
       tox_envlist: ansible-integration
+
+- job:
+    name: tox-format
+    parent: tox
+    vars:
+      tox_envlist: format
