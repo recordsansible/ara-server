@@ -1,0 +1,9 @@
+Code-Review+2: Guillaume Vincent <gvincent@redhat.com>
+Code-Review+2: David Moreau Simard <dmsimard@redhat.com>
+Workflow+1: David Moreau Simard <dmsimard@redhat.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Fri, 28 Sep 2018 14:15:34 +0000
+Reviewed-on: https://review.openstack.org/605421
+Project: openstack/ara-server
+Branch: refs/heads/master
