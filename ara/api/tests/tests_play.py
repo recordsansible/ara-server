@@ -31,7 +31,14 @@ class PlayTestCase(APITestCase):
 
     def test_play_serializer(self):
         playbook = factories.PlaybookFactory()
-        serializer = serializers.PlaySerializer(data={"name": "serializer", "completed": True, "playbook": playbook.id})
+        serializer = serializers.PlaySerializer(
+            data={
+                "name": "serializer",
+                "completed": True,
+                "uuid": "5c5f67b9-e63c-6297-80da-000000000005",
+                "playbook": playbook.id,
+            }
+        )
         serializer.is_valid()
         play = serializer.save()
         play.refresh_from_db()
