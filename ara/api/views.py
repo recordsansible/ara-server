@@ -45,7 +45,7 @@ class PlaybookFilesDetail(NestedViewSetMixin, viewsets.ModelViewSet):
 class PlayViewSet(viewsets.ModelViewSet):
     queryset = models.Play.objects.all()
     serializer_class = serializers.PlaySerializer
-
+    search_fields = ('uuid',)
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = models.Task.objects.all()
