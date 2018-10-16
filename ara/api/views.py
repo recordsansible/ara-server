@@ -17,6 +17,7 @@
 from django.db import transaction
 from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from django_filters.rest_framework import DjangoFilterBackend
 
 from ara.api import models, serializers
 
@@ -29,6 +30,8 @@ class LabelViewSet(viewsets.ModelViewSet):
 class PlaybookViewSet(viewsets.ModelViewSet):
     queryset = models.Playbook.objects.all()
     serializer_class = serializers.PlaybookSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('name',)
 
 
 class PlaybookFilesDetail(NestedViewSetMixin, viewsets.ModelViewSet):
