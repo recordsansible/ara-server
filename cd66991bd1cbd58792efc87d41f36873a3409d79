@@ -1,0 +1,8 @@
+Code-Review+2: Florian Apolloner <florian@apolloner.eu>
+Workflow+1: Florian Apolloner <florian@apolloner.eu>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Tue, 04 Dec 2018 14:55:29 +0000
+Reviewed-on: https://review.openstack.org/618227
+Project: openstack/ara-server
+Branch: refs/heads/master
