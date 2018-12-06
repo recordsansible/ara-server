@@ -6,10 +6,16 @@ ara-server
 ARA Records Ansible playbook runs and makes the recorded data available and
 intuitive for users and systems.
 
-``ara-server`` is a component of ARA which provides an API to store and query
-Ansible execution results:
+ara-server is a modern python 3 application built with the latest releases of
+`Django <https://www.djangoproject.com/>`_ and `django-rest-framework <https://www.django-rest-framework.org/>`_.
+
+ara-server is the component from ARA that manages the REST API and the database.
 
 .. image:: doc/source/_static/screenshot.png
+
+- For the ARA Ansible callback plugin or the ``ara_record`` action module, look at `ara-plugins <https://github.com/openstack/ara-plugins>`_
+- For the ARA REST API clients, look at `ara-clients <https://github.com/openstack/ara-clients>`_
+- For the ARA web interface, look at `ara-web <https://github.com/openstack/ara-web>`_
 
 Disclaimer
 ==========
@@ -29,10 +35,65 @@ version on PyPi_ and the source is available here_.
 .. _PyPi: https://pypi.org/project/ara/
 .. _here: https://github.com/openstack/ara
 
+Quickstart
+==========
+
+Here's how you can get started from scratch with default settings::
+
+    # Create a virtual environment
+    python3 -m venv /opt/ara-venv
+
+    # Install Ansible and the required ARA projects
+    /opt/ara-venv/bin/pip install ansible ara-server ara-clients ara-plugins
+
+    # Tell Ansible to use the ARA callback plugin from ara-plugins
+    export ANSIBLE_CALLBACK_PLUGINS="$(/opt/ara-venv/bin/python -m ara.plugins)/callback"
+
+    # Run your playbook as your normally would
+    /opt/ara-venv/bin/ansible-playbook playbook.yml
+
+The data is saved in real time during the Ansible playbook execution.
+
+What happened behind the scenes is that the ARA Ansible callback plugin
+(provided by ``ara-plugins``) used the offline API client
+(provided by ``ara-clients``) to send your data to the ``ara-server`` API which
+then saved it to a database located by default at
+``~/.ara/server/ansible.sqlite``.
+
+You're now ready to start poking at the API with the built-in API clients !
+
+Note that the ARA web dashboard that leverages this new API is not available yet.
+
 Documentation
 =============
 
-*Work in progress*
+Documentation for installing, configuring, running and using ara-server is
+available on `readthedocs.io <https://ara-server.readthedocs.io>`_.
+
+Community and getting help
+==========================
+
+You can chat with the ARA community on Slack and IRC.
+The two are transparently bridged with teamchat_ which broadcasts messages from
+one platform to the other.
+
+In addition, you can also find ARA on Twitter: `@ARecordsAnsible <https://twitter.com/ARecordsAnsible>`_
+
+**IRC**
+
+- Server: `irc.freenode.net`_
+- Channel: #ara
+
+**Slack**
+
+- https://arecordsansible.slack.com
+- Join with the `Slack invitation <https://join.slack.com/t/arecordsansible/shared_invite/enQtMjMxNzI4ODAxMDQxLWU4MmZhZTI4ZjRjOTUwZTM2MzM3MzcwNDU1YzFmNzRlMzI0NTUzNDY1MWJlNThhM2I4ZTViZjUwZTRkNTBiM2I>`_
+
+.. _teamchat: https://github.com/dmsimard/teamchat
+.. _irc.freenode.net: https://webchat.freenode.net/
+
+Development
+===========
 
 **TL;DR**: Using tox is convenient for the time being::
 
