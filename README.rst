@@ -6,10 +6,16 @@ ara-server
 ARA Records Ansible playbook runs and makes the recorded data available and
 intuitive for users and systems.
 
-``ara-server`` is a component of ARA which provides an API to store and query
-Ansible execution results:
+ara-server is a modern python 3 application built with the latest releases of
+`Django <https://www.djangoproject.com/>`_ and `django-rest-framework <https://www.django-rest-framework.org/>`_.
+
+ara-server is the component from ARA that manages the REST API and the database.
 
 .. image:: doc/source/_static/screenshot.png
+
+- For the ARA Ansible callback plugin or the ``ara_record`` action module, look at `ara-plugins <https://github.com/openstack/ara-plugins>`_
+- For the ARA REST API clients, look at `ara-clients <https://github.com/openstack/ara-clients>`_
+- For the ARA web interface, look at `ara-web <https://github.com/openstack/ara-web>`_
 
 Disclaimer
 ==========
