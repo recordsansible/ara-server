@@ -1,21 +1,89 @@
 import os
 import sys
+import yaml
+import configparser
+parser = configparser.ConfigParser()
 
-from .utils import EverettEnviron
+# Ensure default base configuration/data directory exists
+ARA_DIR = os.environ.get("ARA_DIR", os.path.expanduser('~/.ara'))
+if not os.path.isdir(ARA_DIR):
+    os.makedirs(ARA_DIR, mode=0o700)
 
-env = EverettEnviron(DEBUG=(bool, False))
+DEFAULT_CONFIG = os.path.join(ARA_DIR, "default_config.yaml")
+# Create default configuration file if it doesn't exist
+if not os.path.exists(DEFAULT_CONFIG):
+    CONFIG = {
+        "TIME_ZONE": "UTC",
+        "USE_TZ": True,
+        "SECRET_KEY": "ara-is-awesome",
+        "ALLOWED_HOSTS": ["127.0.0.1"],
+        "CORS_ORIGIN_ALLOW_ALL": True,
+        "CORS_ORIGIN_WHITELIST": ("127.0.0.1:8000", "localhost:3000"),
+        "STATIC_URL": "/static/",
+        "STATIC_ROOT": os.path.join(ARA_DIR, "www", "static"),
+        "MEDIA_URL": "/media/",
+        "MEDIA_ROOT": os.path.join(ARA_DIR, "www", "media"),
+        "DATABASES": {
+            "default": {
+                "ENGINE": os.environ.get("ARA_DATABASE_ENGINE", 'django.db.backends.sqlite3'),
+                "NAME": os.environ.get("ARA_DATABASE_NAME", os.path.join(ARA_DIR, 'ara.sqlite')),
+                "USER": os.environ.get("ARA_DATABASE_USER", None),
+                "PASSWORD": os.environ.get("ARA_DATABASE_PASSWORD", None),
+                "HOST": os.environ.get("ARA_DATABASE_HOST", None),
+                "PORT": os.environ.get("ARA_DATABASE_PORT", None),
+            }
+        },
+        "DEBUG": True,
+        "LOG_LEVEL": "INFO",
+        "LOGGING": {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {"normal": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"}},
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "normal",
+                    "level": "INFO",
+                    "stream": "ext://sys.stdout",
+                }
+            },
+            "loggers": {
+                "ara": {
+                    "handlers": ["console"],
+                    "level": "INFO",
+                    "propagate": 0
+                }
+            },
+            "root": {
+                "handlers": ["console"],
+                "level": "DEBUG"
+            },
+        }
+    }
+    with open(DEFAULT_CONFIG, "w") as config_file:
+        yaml.dump({"default": CONFIG}, config_file, default_flow_style=False)
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if os.environ.get("ARA_SETTINGS") is None:
+    os.environ["ARA_SETTINGS"] = DEFAULT_CONFIG
 
-SECRET_KEY = env("SECRET_KEY")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dynaconf.contrib.django_settings")
+os.environ.setdefault("SETTINGS_MODULE_FOR_DYNACONF", "ara.server.settings")
 
-DEBUG = env.bool("DEBUG", default=False)
+# Django's pre-flight checks requires SECRET_KEY to be set before initializing
+# INSTALLED_APPS.
+# This is overwritten as soon as dynaconf is loaded from INSTALLED_APPS.
+SECRET_KEY = True
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+# Prefix for dynaconf env variables
+GLOBAL_ENV_FOR_DYNACONF = "ARA"
+
+# Path to ini, json, yaml or toml configuration file
+ENVVAR_FOR_DYNACONF = "ARA_SETTINGS"
 
 ADMINS = ()
 
 INSTALLED_APPS = [
+    "dynaconf.contrib.django_dynaconf",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -39,12 +107,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# TODO: Only needed in dev?
-CORS_ORIGIN_ALLOW_ALL = True
-
-# Django built-in server and npm development server
-CORS_ORIGIN_WHITELIST = ("127.0.0.1:8000", "localhost:3000")
-
 ROOT_URLCONF = "ara.server.urls"
 APPEND_SLASH = False
 
@@ -66,8 +128,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "ara.server.wsgi.application"
 
-DATABASES = {"default": env.db(default="sqlite:///%s" % os.path.join(BASE_DIR, "db.sqlite3"))}
-
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -76,49 +136,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_L10N = True
-
-USE_TZ = True
-
-STATIC_URL = "/static/"
-
-STATIC_ROOT = os.path.join(BASE_DIR, "www", "static")
-
-MEDIA_URL = "/media/"
-
-MEDIA_ROOT = os.path.join(BASE_DIR, "www", "media")
-
-# fmt: off
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {"normal": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"}},
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "normal",
-            "level": env("LOG_LEVEL", default="INFO"),
-            "stream": sys.stdout,
-        }
-    },
-    "loggers": {
-        "ara": {
-            "handlers": ["console"],
-            "level": env("LOG_LEVEL", default="INFO"),
-            "propagate": 0
-        }
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": env("LOG_LEVEL", default="DEBUG")
-    },
-}
-# fmt: on
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
