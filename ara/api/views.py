@@ -32,17 +32,6 @@ class PlaybookViewSet(viewsets.ModelViewSet):
     filter_fields = ("name", "status")
 
 
-class PlaybookFilesDetail(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = models.File.objects.all()
-    serializer_class = serializers.FileSerializer
-
-    def perform_create(self, serializer):
-        playbook = models.Playbook.objects.get(pk=self.get_parents_query_dict()["playbooks"])
-        with transaction.atomic(savepoint=False):
-            instance = serializer.save()
-            playbook.files.add(instance)
-
-
 class PlayViewSet(viewsets.ModelViewSet):
     queryset = models.Play.objects.all()
     serializer_class = serializers.PlaySerializer
@@ -70,6 +59,7 @@ class ResultViewSet(viewsets.ModelViewSet):
 class FileViewSet(viewsets.ModelViewSet):
     queryset = models.File.objects.all()
     serializer_class = serializers.FileSerializer
+    filter_fields = ("playbook", "path")
 
 
 class RecordViewSet(viewsets.ModelViewSet):
