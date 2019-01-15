@@ -7,7 +7,12 @@ import yaml
 from django.utils.crypto import get_random_string
 from dynaconf import LazySettings
 
-settings = LazySettings(GLOBAL_ENV_FOR_DYNACONF="ARA", ENVVAR_FOR_DYNACONF="ARA_SETTINGS")
+# Fallback config location; this cannot be customized because it is needed before settings are read.
+DEFAULT_CONFIG = os.path.join(os.path.expanduser("~/.ara/server"), "default_config.yaml")
+
+settings = LazySettings(
+    GLOBAL_ENV_FOR_DYNACONF="ARA", ENVVAR_FOR_DYNACONF="ARA_SETTINGS", SETTINGS_MODULE_FOR_DYNACONF=DEFAULT_CONFIG
+)
 
 # Django doesn't set up logging until it's too late to use it in settings.py.
 # Set it up from the configuration so we can use it.
@@ -166,9 +171,11 @@ REST_FRAMEWORK = {
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
+ARA_SETTINGS = os.getenv("ARA_SETTINGS", DEFAULT_CONFIG)
+logger.info(f"Using configuration file: {ARA_SETTINGS}")
+
 # TODO: Split this out to a CLI command (django-admin command ?)
-DEFAULT_CONFIG = os.path.join(SERVER_DIR, "default_config.yaml")
-if not os.path.exists(DEFAULT_CONFIG):
+if not os.path.exists(DEFAULT_CONFIG) and "ARA_SETTINGS" not in os.environ:
     CONFIG = dict(
         BASE_DIR=BASE_DIR,
         ALLOWED_HOSTS=ALLOWED_HOSTS,
@@ -193,8 +200,6 @@ if not os.path.exists(DEFAULT_CONFIG):
         #   $ export ARA_SETTINGS={DEFAULT_CONFIG}
 
         """
+        logger.info(f"Writing default config to {DEFAULT_CONFIG}")
         config_file.write(textwrap.dedent(comment))
         yaml.dump({"default": CONFIG}, config_file, default_flow_style=False)
-
-ARA_SETTINGS = os.getenv("ARA_SETTINGS", DEFAULT_CONFIG)
-logger.info(f"Using configuration file: {ARA_SETTINGS}")
