@@ -151,6 +151,24 @@ class LabelSerializer(serializers.ModelSerializer):
     )
 
 
+class PlaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Play
+        fields = "__all__"
+
+
+class SimpleTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Task
+        fields = ("id", "name")
+
+
+class RecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Record
+        fields = "__all__"
+
+
 class PlaybookSerializer(DurationSerializer):
     class Meta:
         model = models.Playbook
@@ -160,6 +178,9 @@ class PlaybookSerializer(DurationSerializer):
     files = FileSerializer(many=True, default=[])
     hosts = HostSerializer(many=True, default=[])
     labels = LabelSerializer(many=True, default=[])
+    tasks = SimpleTaskSerializer(many=True, read_only=True, default=[])
+    plays = PlaySerializer(many=True, read_only=True, default=[])
+    records = RecordSerializer(many=True, read_only=True, default=[])
 
     def create(self, validated_data):
         # Create the playbook without the file and label references for now
