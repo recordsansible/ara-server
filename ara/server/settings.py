@@ -1,4 +1,5 @@
 import os
+import random
 import textwrap
 
 import yaml
@@ -19,7 +20,12 @@ CORS_ORIGIN_ALLOW_ALL = settings.get("CORS_ORIGIN_ALLOW_ALL", False)
 
 ADMINS = settings.get("ADMINS", ())
 
-SECRET_KEY = settings.get("SECRET_KEY")
+def get_secret_key():
+    if not settings.get("SECRET_KEY"):
+        return "".join([random.choice("abcdefghijklmnopqrstuvwxyz0123456789@#$^()") for i in range(50)])
+    return settings.get("SECRET_KEY")
+
+SECRET_KEY = get_secret_key()
 
 # We're not expecting ARA to use multiple concurrent databases.
 # Make it easier for users to specify the configuration for a single database.
@@ -157,7 +163,7 @@ if not os.path.exists(DEFAULT_CONFIG):
         ALLOWED_HOSTS=ALLOWED_HOSTS,
         CORS_ORIGIN_WHITELIST=CORS_ORIGIN_WHITELIST,
         CORS_ORIGIN_ALLOW_ALL=CORS_ORIGIN_ALLOW_ALL,
-        SECRET_KEY="please-change-this",
+        SECRET_KEY=SECRET_KEY,
         DATABASES=DATABASES,
         STATIC_URL=STATIC_URL,
         STATIC_ROOT=STATIC_ROOT,
@@ -178,3 +184,5 @@ if not os.path.exists(DEFAULT_CONFIG):
         """
         config_file.write(textwrap.dedent(comment))
         yaml.dump({"default": CONFIG}, config_file, default_flow_style=False)
+
+ARA_SETTINGS = os.getenv("ARA_SETTINGS", DEFAULT_CONFIG)
