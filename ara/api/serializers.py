@@ -29,6 +29,18 @@ DURATION_FORMAT = "([DD] [HH:[MM:]]ss[.uuuuuu])"
 logger = logging.getLogger("ara.api.serializers")
 
 
+class DurationMixin(object):
+    """
+    Provides a method for retrieving the duration of an object with
+    "started", "updated" and "ended" timestamps.
+    """
+
+    def get_duration(self, obj):
+        if obj.ended is None:
+            return obj.updated - obj.started
+        return obj.ended - obj.started
+
+
 class CompressedTextField(serializers.CharField):
     """
     Compresses text before storing it in the database.
@@ -56,29 +68,6 @@ class CompressedObjectField(serializers.JSONField):
         return zlib.compress(json.dumps(data).encode("utf8"))
 
 
-class DurationSerializer(serializers.ModelSerializer):
-    """
-    Serializer for duration-based fields
-    """
-
-    class Meta:
-        abstract = True
-
-    duration = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_duration(obj):
-        if obj.ended is None:
-            return obj.updated - obj.started
-        return obj.ended - obj.started
-
-
-class FileContentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.FileContent
-        fields = "__all__"
-
-
 class FileContentField(serializers.CharField):
     """
     Compresses text before storing it in the database.
@@ -95,6 +84,12 @@ class FileContentField(serializers.CharField):
             sha1=sha1, defaults={"sha1": sha1, "contents": zlib.compress(contents)}
         )
         return content_file
+
+
+class FileContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FileContent
+        fields = "__all__"
 
 
 class FileSerializer(serializers.ModelSerializer):
@@ -133,11 +128,12 @@ class HostSerializer(serializers.ModelSerializer):
         return host
 
 
-class ResultSerializer(serializers.ModelSerializer):
+class ResultSerializer(serializers.ModelSerializer, DurationMixin):
     class Meta:
         model = models.Result
         fields = "__all__"
 
+    duration = serializers.SerializerMethodField()
     content = CompressedObjectField(default=zlib.compress(json.dumps({}).encode("utf8")))
 
 
@@ -151,11 +147,12 @@ class LabelSerializer(serializers.ModelSerializer):
     )
 
 
-class TaskSerializer(DurationSerializer):
+class TaskSerializer(serializers.ModelSerializer, DurationMixin):
     class Meta:
         model = models.Task
         fields = "__all__"
 
+    duration = serializers.SerializerMethodField()
     tags = CompressedObjectField(
         default=zlib.compress(json.dumps([]).encode("utf8")), help_text="A JSON list containing Ansible tags"
     )
@@ -178,11 +175,12 @@ class RecordSerializer(serializers.ModelSerializer):
     )
 
 
-class PlaySerializer(DurationSerializer):
+class PlaySerializer(serializers.ModelSerializer, DurationMixin):
     class Meta:
         model = models.Play
         fields = "__all__"
 
+    duration = serializers.SerializerMethodField()
     hosts = HostSerializer(read_only=True, many=True)
     results = ResultSerializer(read_only=True, many=True)
 
@@ -199,11 +197,12 @@ class StatsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PlaybookSerializer(DurationSerializer):
+class PlaybookSerializer(serializers.ModelSerializer, DurationMixin):
     class Meta:
         model = models.Playbook
         fields = "__all__"
 
+    duration = serializers.SerializerMethodField()
     arguments = CompressedObjectField(default=zlib.compress(json.dumps({}).encode("utf8")))
     files = FileSerializer(many=True, default=[])
     hosts = HostSerializer(many=True, default=[])
