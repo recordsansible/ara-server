@@ -35,35 +35,64 @@ class InfoView(viewsets.ViewSet):
 
 class LabelViewSet(viewsets.ModelViewSet):
     queryset = models.Label.objects.all()
-    serializer_class = serializers.LabelSerializer
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.LabelSerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListLabelSerializer
+        return serializers.LabelSerializer
 
 
 class PlaybookViewSet(viewsets.ModelViewSet):
     queryset = models.Playbook.objects.all()
-    serializer_class = serializers.PlaybookSerializer
     filter_fields = ("name", "status")
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.PlaybookSerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListPlaybookSerializer
+        return serializers.PlaybookSerializer
 
 
 class PlayViewSet(viewsets.ModelViewSet):
     queryset = models.Play.objects.all()
-    serializer_class = serializers.PlaySerializer
     filter_fields = ("playbook", "uuid")
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.PlaySerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListPlaySerializer
+        return serializers.PlaySerializer
 
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = models.Task.objects.all()
-    serializer_class = serializers.TaskSerializer
     filter_fields = ("playbook",)
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.TaskSerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListTaskSerializer
+        return serializers.TaskSerializer
 
 
 class HostViewSet(viewsets.ModelViewSet):
     queryset = models.Host.objects.all()
-    serializer_class = serializers.HostSerializer
     filter_fields = ("playbook",)
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.HostSerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListHostSerializer
+        return serializers.HostSerializer
 
 
 class ResultViewSet(viewsets.ModelViewSet):
-    serializer_class = serializers.ResultSerializer
     filter_fields = ("playbook",)
 
     def get_queryset(self):
@@ -72,20 +101,45 @@ class ResultViewSet(viewsets.ModelViewSet):
             return models.Result.objects.filter(status__in=statuses)
         return models.Result.objects.all()
 
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.ResultSerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListResultSerializer
+        return serializers.ResultSerializer
+
 
 class FileViewSet(viewsets.ModelViewSet):
     queryset = models.File.objects.all()
-    serializer_class = serializers.FileSerializer
     filter_fields = ("playbook", "path")
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.FileSerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListFileSerializer
+        return serializers.FileSerializer
 
 
 class RecordViewSet(viewsets.ModelViewSet):
     queryset = models.Record.objects.all()
-    serializer_class = serializers.RecordSerializer
     filter_fields = ("playbook", "key")
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.RecordSerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListRecordSerializer
+        return serializers.RecordSerializer
 
 
 class StatsViewSet(viewsets.ModelViewSet):
     queryset = models.Stats.objects.all()
-    serializer_class = serializers.StatsSerializer
     filter_fields = ("playbook", "host")
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "destroy"]:
+            return serializers.StatsSerializer
+        if self.action in ["list", "retrieve"]:
+            return serializers.ListStatsSerializer
+        return serializers.StatsSerializer

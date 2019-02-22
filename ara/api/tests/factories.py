@@ -16,9 +16,12 @@
 #  along with ARA.  If not, see <http://www.gnu.org/licenses/>.
 
 import factory
+import logging
 
 from ara.api import models
 from ara.api.tests import utils
+
+logging.getLogger("factory").setLevel(logging.INFO)
 
 # constants for things like compressed byte strings or objects
 FILE_CONTENTS = "---\n# Example file"

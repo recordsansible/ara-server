@@ -20,9 +20,89 @@ from rest_framework import serializers
 from ara.api import fields as ara_fields, models
 
 
+class SimpleLabelSerializer(serializers.ModelSerializer):
+    """
+    Simple label serializer used in lists or for displaying relationships
+    """
+
+    class Meta:
+        model = models.Label
+        fields = ("id", "name")
+
+
+class SimplePlaybookSerializer(serializers.ModelSerializer):
+    """
+    Simple playbook serializer used in lists or for displaying relationships
+    """
+
+    class Meta:
+        model = models.Playbook
+        fields = ("id", "name", "path")
+
+
+class SimplePlaySerializer(serializers.ModelSerializer):
+    """
+    Simple play serializer used in lists or for displaying relationships
+    """
+
+    class Meta:
+        model = models.Play
+        fields = ("id", "name")
+
+
+class SimpleTaskSerializer(serializers.ModelSerializer):
+    """
+    Simple task serializer used in lists or for displaying relationships
+    """
+
+    class Meta:
+        model = models.Task
+        fields = ("id", "name")
+
+
+class SimpleHostSerializer(serializers.ModelSerializer):
+    """
+    Simple host serializer used in lists or for displaying relationships
+    """
+
+    class Meta:
+        model = models.Host
+        fields = ("id", "name", "alias")
+
+
+class SimpleResultSerializer(serializers.ModelSerializer):
+    """
+    Simple result serializer used in lists or for displaying relationships
+    """
+
+    class Meta:
+        model = models.Result
+        fields = ("id", "status")
+
+
+class SimpleFileSerializer(serializers.ModelSerializer):
+    """
+    Simple file serializer used in lists or for displaying relationships
+    """
+
+    class Meta:
+        model = models.File
+        fields = ("id", "path")
+
+
+class SimpleRecordSerializer(serializers.ModelSerializer):
+    """
+    Simple record serializer used in lists or for displaying relationships
+    """
+
+    class Meta:
+        model = models.Record
+        fields = ("id", "key")
+
+
 class DurationSerializer(serializers.ModelSerializer):
     """
-    Serializer for duration-based fields
+    Serializer for objects that occur over a period of time and have a duration.
     """
 
     class Meta:
@@ -37,20 +117,71 @@ class DurationSerializer(serializers.ModelSerializer):
         return obj.ended - obj.started
 
 
-class FileSerializer(serializers.ModelSerializer):
+class LabelSerializer(serializers.ModelSerializer):
+    """
+    Default serializer for labels
+    """
+
     class Meta:
-        model = models.File
+        model = models.Label
         fields = "__all__"
 
-    sha1 = serializers.SerializerMethodField()
-    content = ara_fields.FileContentField()
+    description = ara_fields.CompressedTextField(
+        default=ara_fields.EMPTY_STRING, help_text="A text description of the label"
+    )
 
-    @staticmethod
-    def get_sha1(obj):
-        return obj.content.sha1
+
+class PlaybookSerializer(DurationSerializer):
+    """
+    Default serializer for playbooks
+    """
+
+    class Meta:
+        model = models.Playbook
+        fields = "__all__"
+
+    arguments = ara_fields.CompressedObjectField(default=ara_fields.EMPTY_DICT)
+    labels = LabelSerializer(many=True, default=[])
+
+    def create(self, validated_data):
+        # First create the playbook without the labels
+        labels = validated_data.pop("labels")
+        playbook = models.Playbook.objects.create(**validated_data)
+
+        # Now associate the labels to the playbook
+        for label in labels:
+            playbook.labels.add(models.Label.objects.create(**label))
+
+        return playbook
+
+
+class PlaySerializer(DurationSerializer):
+    """
+    Default serializer for plays
+    """
+
+    class Meta:
+        model = models.Play
+        fields = "__all__"
+
+
+class TaskSerializer(DurationSerializer):
+    """
+    Default serializer for tasks
+    """
+
+    class Meta:
+        model = models.Task
+        fields = "__all__"
+
+    tags = ara_fields.CompressedObjectField(default=ara_fields.EMPTY_LIST, help_text="A list containing Ansible tags")
 
 
 class HostSerializer(serializers.ModelSerializer):
+    """
+    Default serializer for hosts
+    """
+
     class Meta:
         model = models.Host
         fields = "__all__"
@@ -74,6 +205,10 @@ class HostSerializer(serializers.ModelSerializer):
 
 
 class ResultSerializer(DurationSerializer):
+    """
+    Default serializer for results
+    """
+
     class Meta:
         model = models.Result
         fields = "__all__"
@@ -81,31 +216,28 @@ class ResultSerializer(DurationSerializer):
     content = ara_fields.CompressedObjectField(default=ara_fields.EMPTY_DICT)
 
 
-class LabelSerializer(serializers.ModelSerializer):
+class FileSerializer(serializers.ModelSerializer):
+    """
+    Default serializer for files
+    """
+
     class Meta:
-        model = models.Label
+        model = models.File
         fields = "__all__"
 
-    description = ara_fields.CompressedTextField(
-        default=ara_fields.EMPTY_STRING, help_text="A text description of the label"
-    )
+    sha1 = serializers.SerializerMethodField()
+    content = ara_fields.FileContentField()
 
-
-class TaskSerializer(DurationSerializer):
-    class Meta:
-        model = models.Task
-        fields = "__all__"
-
-    tags = ara_fields.CompressedObjectField(default=ara_fields.EMPTY_LIST, help_text="A list containing Ansible tags")
-
-
-class SimpleTaskSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Task
-        fields = ("id", "name")
+    @staticmethod
+    def get_sha1(obj):
+        return obj.content.sha1
 
 
 class RecordSerializer(serializers.ModelSerializer):
+    """
+    Default Serializer for records
+    """
+
     class Meta:
         model = models.Record
         fields = "__all__"
@@ -115,36 +247,136 @@ class RecordSerializer(serializers.ModelSerializer):
     )
 
 
-class PlaySerializer(DurationSerializer):
-    class Meta:
-        model = models.Play
-        fields = "__all__"
-
-    hosts = HostSerializer(read_only=True, many=True)
-    results = ResultSerializer(read_only=True, many=True)
-
-
-class SimplePlaySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Play
-        fields = "__all__"
-
-
 class StatsSerializer(serializers.ModelSerializer):
+    """
+    Default Serializer for stats
+    """
+
     class Meta:
         model = models.Stats
         fields = "__all__"
 
 
-class PlaybookSerializer(DurationSerializer):
+class ListLabelSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing labels and their relationships
+    """
+
+    class Meta:
+        model = models.Label
+        fields = "__all__"
+
+    description = ara_fields.CompressedTextField(
+        default=ara_fields.EMPTY_STRING, help_text="A text description of the label"
+    )
+
+
+class ListPlaybookSerializer(DurationSerializer):
+    """
+    Serializer for listing playbooks and their relationships
+    """
+
     class Meta:
         model = models.Playbook
         fields = "__all__"
 
-    arguments = ara_fields.CompressedObjectField(default=ara_fields.EMPTY_DICT)
-    files = FileSerializer(many=True, read_only=True, default=[])
-    hosts = HostSerializer(many=True, read_only=True, default=[])
-    labels = LabelSerializer(many=True, read_only=True, default=[])
-    tasks = SimpleTaskSerializer(many=True, read_only=True, default=[])
+    arguments = ara_fields.CompressedObjectField(read_only=True)
+    labels = SimpleLabelSerializer(many=True, read_only=True, default=[])
     plays = SimplePlaySerializer(many=True, read_only=True, default=[])
-    records = RecordSerializer(many=True, read_only=True, default=[])
+    tasks = SimpleTaskSerializer(many=True, read_only=True, default=[])
+    hosts = SimpleHostSerializer(many=True, read_only=True, default=[])
+    results = SimpleResultSerializer(many=True, read_only=True, default=[])
+    files = SimpleFileSerializer(many=True, read_only=True, default=[])
+    records = SimpleRecordSerializer(many=True, read_only=True, default=[])
+
+
+class ListPlaySerializer(DurationSerializer):
+    """
+    Serializer for listing plays and their relationships
+    """
+
+    class Meta:
+        model = models.Play
+        fields = "__all__"
+
+    playbook = SimplePlaybookSerializer(read_only=True)
+    hosts = SimpleHostSerializer(many=True, read_only=True, default=[])
+    tasks = SimpleTaskSerializer(many=True, read_only=True, default=[])
+    results = SimpleResultSerializer(many=True, read_only=True, default=[])
+
+
+class ListTaskSerializer(DurationSerializer):
+    """
+    Serializer for listing tasks and their relationships
+    """
+
+    class Meta:
+        model = models.Task
+        fields = "__all__"
+
+    tags = ara_fields.CompressedObjectField(read_only=True)
+    results = SimpleResultSerializer(many=True, read_only=True, default=[])
+
+
+class ListHostSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing hosts and their relationships
+    """
+
+    class Meta:
+        model = models.Host
+        exclude = ("facts",)
+
+    playbook = SimplePlaybookSerializer(read_only=True)
+
+
+class ListResultSerializer(DurationSerializer):
+    """
+    Serializer for listing results and their relationships
+    """
+
+    class Meta:
+        model = models.Result
+        exclude = ("content",)
+
+    playbook = SimplePlaybookSerializer(read_only=True)
+    play = SimplePlaySerializer(read_only=True)
+    task = SimpleTaskSerializer(read_only=True)
+    host = SimpleHostSerializer(read_only=True)
+
+
+class ListFileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing files and their relationships
+    """
+
+    class Meta:
+        model = models.File
+        exclude = ("content",)
+
+    playbook = SimplePlaybookSerializer(read_only=True)
+
+
+class ListRecordSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing records and their relationships
+    """
+
+    class Meta:
+        model = models.Record
+        exclude = ("value",)
+
+    playbook = SimplePlaybookSerializer(read_only=True)
+
+
+class ListStatsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing stats and their relationships
+    """
+
+    class Meta:
+        model = models.Stats
+        fields = "__all__"
+
+    playbook = SimplePlaybookSerializer(read_only=True)
+    host = SimpleHostSerializer(read_only=True)
